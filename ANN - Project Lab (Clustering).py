@@ -15,7 +15,6 @@ def load_data_clustering(path):
 
         #Feature Selection
         for row in reader:
-            print(row[3])
             calorie_density = (float(row[3]) + float(row[4])) / 100
             dividend = float(row[8]) +  float(row[9])
             divisor = float(row[7]) + float(row[11])
@@ -31,16 +30,16 @@ def load_data_clustering(path):
     return dataset
 
 class Clustering:
-    def __init__(self, height, width, inp_dimension):
+    def __init__(self, height, width, input_dimension):
         #Initialization
         self.height = height
         self.width = width
-        self.inp_dimension = inp_dimension
+        self.input_dimension = input_dimension
 
         #Node Initialization
         self.node = [tf.to_float([i, j]) for i in range(height) for j in range(width)]
-        self.input = tf.placeholder(tf.float32, [inp_dimension])
-        self.weight = tf.Variable(tf.random_normal([height * width, inp_dimension]))
+        self.input = tf.placeholder(tf.float32, [input_dimension])
+        self.weight = tf.Variable(tf.random_normal([height * width, input_dimension]))
 
         #Function to Find Nearest Node and Weight Update
         self.best_matching_unit = self.get_bmu(self.input)
@@ -53,8 +52,8 @@ class Clustering:
         distances = tf.reduce_sum(euclidean, 1) #Putting 0 will be Adding to Beside
 
         #Search Index of Shortest Distance
-        min_index = tf.argmin(distances, 0) #Putting 0 will be Checking to Down | Putting 1 will be Checking to Beside
-        bmu_location = tf.stack([tf.mod(min_index, self.width), tf.div(min_index, self.width)])
+        minimum_index = tf.argmin(distances, 0) #Putting 0 will be Checking to Down | Putting 1 will be Checking to Beside
+        bmu_location = tf.stack([tf.mod(minimum_index, self.width), tf.div(minimum_index, self.width)])
         return tf.to_float(bmu_location)
 
     def get_update_weight(self, bmu, input):
@@ -71,12 +70,12 @@ class Clustering:
         #Calculate Rate
         rate = tf.multiply(ns, learning_rate)
         num_of_node = self.height * self.width
-        rate_value = tf.stack([tf.tile(tf.slice(rate, [i], [1]), [self.inp_dimension]) for i in range(num_of_node)])
+        rate_value = tf.stack([tf.tile(tf.slice(rate, [i], [1]), [self.input_dimension]) for i in range(num_of_node)])
 
         #Calculate Update Weight
-        weight_diff = tf.multiply(rate_value, tf.subtract(tf.stack([input for i in range (num_of_node)]), self.weight))
+        weight_difference = tf.multiply(rate_value, tf.subtract(tf.stack([input for i in range (num_of_node)]), self.weight))
 
-        updated_weight = tf.add(self.weight, weight_diff)
+        updated_weight = tf.add(self.weight, weight_difference)
         return tf.assign(self.weight, updated_weight)
 
     def train(self, dataset, num_of_epoch):
